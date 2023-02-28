@@ -1,3 +1,6 @@
+import math
+
+
 def fast_mul_gen(y):
     print('def mul(x, y):')
     print(' t = x')
@@ -7,6 +10,7 @@ def fast_mul_gen(y):
         print(' x += t')
     print(' return x')
 
+math.log()
 
 def fast_pow_gen(y):
     fast_mul_gen(y)
