@@ -1,3 +1,3 @@
-x = 534
+x = 100
 
-print(sum(list(int(i) for i in str(x).split())))
+print("Число харшад" if x % sum(list(int(i) for i in list(str(x)))) == 0 else "Не число харшад" )
