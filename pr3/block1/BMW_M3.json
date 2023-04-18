@@ -1,0 +1,10 @@
+{
+  "databaseCar":
+  {
+    "Kuzov": "Sedan",
+    "KPP": "MKPP",
+    "Mark": "BMW",
+    "Model": "M3",
+    "Horsepower": 510
+  }
+}

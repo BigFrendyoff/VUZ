@@ -26,17 +26,9 @@ for i in range(len(groups)):
             res[groups[i]][variants[i]] = achievements[i]
         else:
             res[groups[i]][variants[i]] += achievements[i]
-print(res)
-srt = []
-for i in res.keys():
-    srt.extend([j for j in sorted(res[i].values())])
 
-srt = sorted(srt, reverse=True)[:10]
-print(srt)
-
-ans = []
+ans = {}
 for i in res.items():
-    for j in i[1].items():
-       if j[1] in srt:
-           ans.append((i[0], j[0]))
+    ans[i[0]] = sum(i[1].values())
+ans = sorted(ans.items(), key=lambda x: x[1], reverse=True)
 print(ans)
