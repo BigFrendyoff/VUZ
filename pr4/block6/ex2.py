@@ -1,185 +1,88 @@
+import operator
+
 OP_NAMES = {0: 'push', 1: 'op', 2: 'call', 3: 'is', 4: 'to', 5: 'exit'}
 
 
-def not_implemented(vm):
+
+def not_implemented():
     raise RuntimeError('Not implemented!')
 
 
-def implemented(vm):
+def implemented():
     print('Implemented!')
 
 
+LIB = {
+    '+': operator.add,
+    '-': operator.sub,
+    '*': operator.mul,
+    '/': operator.floordiv,
+    '%': operator.mod,
+    '&': operator.and_,
+    '|': operator.or_,
+    '^': operator.xor,
+    '<': operator.lt,
+    '>': operator.gt,
+    '=': operator.eq,
+    '<<': operator.lshift,
+    '>>': operator.rshift,
+    'if': not_implemented,
+    'for': not_implemented,
+    '.': lambda x: print(x, end=''),
+    'emit': lambda x: print(chr(x), end=''),
+    '?': not_implemented,
+    'array': not_implemented,
+    '@': not_implemented,
+    '!': not_implemented
+}
+
+LIB_KEYS = list(LIB.keys())
+
 class VirtualMachine:
     def __init__(self, code):
-        self.pc = 0  # счетчик команд
+        self.entry = code[0]  # счетчик команд
         self.stack = []  # стек
-        self.code = code  # память кода
+        self.code = code[1:]  # память кода
         self.scope = {}  # пространство имен
-        self.LIB = {  # Для быстрого задания большинства операций полезен модуль operator
-            '+': self.sum_op,
-            '-': not_implemented,
-            '*': not_implemented,
-            '/': not_implemented,  # Целочисленный вариант деления
-            '%': not_implemented,
-            '&': not_implemented,
-            '|': not_implemented,
-            '^': not_implemented,
-            '<': not_implemented,
-            '>': not_implemented,
-            '=': not_implemented,
-            '<<': not_implemented,
-            '>>': not_implemented,
-            'if': not_implemented,
-            'for': not_implemented,
-            '.': self.dot,
-            'emit': not_implemented,
-            '?': not_implemented,
-            'array': not_implemented,
-            '@': not_implemented,
-            '!': not_implemented
-        }
 
-    def not_implemented(self):
-        raise RuntimeError('Not implemented!')
+    def run(self, scope=dict()):
+        scope = scope.copy()
+        pc = self.entry
+        while pc < len(self.code):
+            opcode = self.code[pc] & 0b111
+            operand = self.code[pc] >> 3
+            op = OP_NAMES[opcode]
 
-    def sum_op(self):
-        b = self.stack.pop()
-        a = self.stack.pop()
-        self.stack.append(a + b)
-
-    def dot(self):
-        return self.stack.pop()
-
-    def run(self):
-        while self.pc < len(self.code):
-            opcode = self.code[self.pc] & 0b111  # младшие 3 бита - код операции
-            operand = self.code[self.pc] >> 3  # старшие 29 бит - аргумент операции
-            if opcode == 0 and operand == 0:  # entry
-                print("entry:")
-            elif opcode == 0:  # PUSH
+            if op == 'push':  # PUSH
                 self.stack.append(operand)
-                print("    push", operand)
-            elif opcode == 1:
-                if operand == 0:
-                    self.LIB['+']()
-                    print("    op", "'+'")
-                elif operand == 1:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a - b)
-                    print("    op", "'-'")
-                elif operand == 2:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a * b)
-                    print("    op", "'*'")
-                elif operand == 3:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a // b)
-                    print("    op", "'/'")
-                elif operand == 4:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a % b)
-                    print("    op", "'%'")
-                elif operand == 5:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a & b)
-                    print("    op", "'&'")
-                elif operand == 6:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a | b)
-                    print("    op", "'|'")
-                elif operand == 7:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a ^ b)
-                    print("    op", "'^'")
-                elif operand == 8:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a < b)
-                    print("    op", "'<'")
-                elif operand == 9:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a > b)
-                    print("    op", "'>'")
-                elif operand == 10:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    if (a == b):
-                        self.stack.append(True)
-                    else:
-                        self.stack.append(False)
-                    print("    op", "'='")
-                elif operand == 11:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a << b)
-                    print("    op", "'<<'")
-                elif operand == 12:
-                    b = self.stack.pop()
-                    a = self.stack.pop()
-                    self.stack.append(a >> b)
-                    print("    op", "'>>'")
-                elif operand == 13:
+            if op == 'op':
 
-                    print("    op", "'if'")
-                elif operand == 14:
+                if 0 <= operand <= 12:
+                    self.stack.append(LIB[LIB_KEYS[operand]](self.stack.pop(), self.stack.pop()))
+                else:
+                    self.stack.append(LIB[LIB_KEYS[operand]](self.stack.pop()))
 
-                    print("    op", "'for'")
-                elif operand == 15:
+            if op == 'is':
+                scope[operand] = (self.stack.pop(), 'f')
 
-                    print("    op", "'.'", self.LIB['.']())
-                elif operand == 16:
+            if op == 'call':
+                if scope[operand][1] == "f":
+                    self.entry = scope[operand][0]
+                    self.run(scope)
+                if scope[operand][1] == 'v':
+                    self.stack.append(scope[operand][0])
 
-                    print("    op", "'emit'")
-                elif operand == 17:
-
-                    print("    op", "'?'")
-                elif operand == 18:
-
-                    print("    op", "'array'")
-                elif operand == 19:
-
-                    print("    op", "'@'")
-                elif operand == 20:
-
-                    print("    op", "'!'")
-
-
-
-            # elif opcode == 2:  # call
-            #     value = self.scope.get(operand)
-            #     print(value, '----------')
-            #     if callable(value):
-            #         value()
-            #     else:
-            #         self.stack.append(value)
-            #
-            # elif opcode == 3:  # is
-            #     self.scope[operand] = self.stack.pop()
-            #     print("    is ", operand)
-
-            # elif opcode == 4:  # to
-
-            elif opcode == 5:  # exit
-                print("    exit", operand)
+            if op == 'exit':
                 break
 
-            self.pc += 1  # переход к следующей команде
+            pc += 1
 
 
-code = [0, 16, 16, 1, 121, 5]
+code = [57, 8440, 129, 8704, 129, 8688, 129, 8600, 129, 8704, 129, 8576, 129, 8672,
+ 129, 8672, 129, 8576, 129, 256, 129, 8728, 129, 8712, 129, 8696, 129, 8616,
+ 129, 8768, 129, 8680, 129, 8688, 129, 256, 129, 8592, 129, 8792, 129, 8696,
+ 129, 8688, 129, 8664, 129, 8680, 129, 8616, 129, 8680, 129, 8576, 129, 264,
+ 129, 5, 0, 3, 2, 5]
+
 VM = VirtualMachine(code)
 VM.run()
-
-
-
-def func():
-    print("Hello, world!")
-print(func)
