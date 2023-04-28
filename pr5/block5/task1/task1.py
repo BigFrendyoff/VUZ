@@ -7,7 +7,7 @@ def distance(x1, y1, x2, y2):
 
 
 def correct_distance(x1, y1, x2, y2):
-    return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 1 / 2
+    return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** (1 / 2)
 
 
 @given(st.floats(), st.floats(), st.floats(), st.floats())

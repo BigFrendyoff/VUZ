@@ -115,9 +115,9 @@ def find_dead_ends():
     return dead_ends
 
 
-state = game[get_current_room(START_STATE)]['right'](START_STATE)
-if get_current_room(state) == 'room3':
-    add_path("room3", "room0")
+# state = game[get_current_room(START_STATE)]['right'](START_STATE)
+# if get_current_room(state) == 'room3':
+#     add_path("room3", "room0")
 
 make_model(game, START_STATE)
 

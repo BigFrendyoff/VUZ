@@ -7,7 +7,7 @@ import ast
 class Mutator(ast.NodeTransformer):
     def visit_Constant(self, node):
         if isinstance(node.value, int) or isinstance(node.value, float):
-            random_num = random.uniform(-1000, 1000)  # генерация случайного числа
+            random_num = random.uniform(-1000, 1000)
             return ast.Constant(random_num)
         else:
             return node
@@ -42,43 +42,23 @@ def mut_test(func, test, size=20):
     return survived
 
 
-#создадим функцию, которая будет принимать на вход функцию Python и количество мутантов, которые мы хотим сгенерировать.
-def mut_test_random_constants(func, n_mutants):
-    survived, scope = [], {}
-    mutants = make_mutants(func, n_mutants)
-    for mutant in mutants:
-        try:
-            exec(mutant, scope)
-            assert func(scope['data']) == scope['expected']
-            survived.append(mutant)
-        except AssertionError as e:
-            print(f'Mutant failed: {mutant}, {e}')
-    return survived
+def distance(x1, y1, x2, y2):
+    return ((x2 + x1) ** 2 - (y2 + y1) ** 2) ** 0.25
+
+def correct_distance(x1, y1, x2, y2):
+    return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** (1 / 2)
 
 
-def mutate_me(data):
-    # Данная функция должна суммировать все положительные числа в списке data,
-    # но она содержит ошибку, которую мы попробуем найти с помощью мутационного тестирования
+def test_distance():
+    assert distance(0, 0, 1, 0) == 1
+    assert distance(0, 0, 0, 1) == 1
+    assert distance(0, 0, 0, 0) == 0
 
-    sum = 0
-    for num in data:
-        if num > 0:
-            sum += num ** 2  # ОШИБКА: нужно суммировать num, а не num ** 2
-    return sum
-
-
-def test_mutate_me():
-    # Тесты для функции mutate_me()
-    assert mutate_me([1, 2, 3]) == 14
-    assert mutate_me([-1, 2, -3]) == 4
-    assert mutate_me([0, 0]) == 0
+def test_correct_distance():
+    assert correct_distance(0, 0, 1, 0) == 1
+    assert correct_distance(0, 0, 0, 1) == 1
+    assert correct_distance(0, 0, 0, 0) == 0
 
 
-data = [0, 2, 4, -1, 6, 7, -3, 5]
-expected = 2 ** 2 + 4 ** 2 + 6 ** 2 + 7 ** 2 + 5 ** 2
 
-# Протестируем функцию mutate_me() с помощью мутационного тестирования
-survived_mutants = mut_test_random_constants(mutate_me, 50)
-
-# Проверим, что все мутанты провалили тесты
-assert len(survived_mutants) == 0
+print(mut_test(correct_distance, test_correct_distance, size=100))

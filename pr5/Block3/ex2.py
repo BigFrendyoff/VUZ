@@ -3,18 +3,60 @@ from collections import defaultdict
 import inspect
 import ast
 
-
-class Mutator(ast.NodeTransformer):
-    def visit_BinOp(self, node):
-        operators = [ast.Add(), ast.Sub(), ast.Mult(), ast.Div()]  # список возможных операций
-        op = random.choice(operators)  # выбор случайной операции
-        return ast.BinOp(left=node.left, right=node.right, op=op)
+def sum_positive_numbers(numbers):
+    return sum([x**2 for x in numbers if x > 0])
 
 def mutate_code(src):
     tree = ast.parse(src)
     Mutator().visit(tree)
     return ast.unparse(tree)
 
+class Mutator(ast.NodeTransformer):
+    def visit_Constant(self, node):
+        if isinstance(node.value, int):
+            node.value = random.randint(-100, 100)
+        return node
+
+
+BINARY_OPERATORS = [ast.Add(), ast.Sub(), ast.Mult(), ast.Div()]
+
+class Mutator(ast.NodeTransformer):
+    def visit_BinOp(self, node):
+        node.left = self.visit(node.left)
+        node.right = self.visit(node.right)
+        if isinstance(node.op, ast.Add):
+            node.op = random.choice(BINARY_OPERATORS)
+        return node
+
+
+def sort_numbers(numbers):
+    return sorted(numbers)
+
+
+import random
+from collections import defaultdict
+import inspect
+import ast
+
+BINARY_OPERATORS = [ast.Add(), ast.Sub(), ast.Mult(), ast.Div()]
+
+class Mutator(ast.NodeTransformer):
+    def visit_Constant(self, node):
+        if isinstance(node.value, int):
+            node.value = random.randint(-100, 100)
+        return node
+
+    def visit_BinOp(self, node):
+        node.left = self.visit(node.left)
+        node.right = self.visit(node.right)
+        if isinstance(node.op, ast.Add):
+            node.op = random.choice(BINARY_OPERATORS)
+        return node
+
+def mutate_code(src):
+    tree = ast.parse(src)
+    Mutator().visit(tree)
+    return ast.unparse(tree)
 
 def make_mutants(func, size):
     mutant = src = ast.unparse(ast.parse(inspect.getsource(func)))
@@ -24,7 +66,6 @@ def make_mutants(func, size):
             mutant = mutate_code(src)
         mutants.append(mutant)
     return mutants[1:]
-
 
 def mut_test(func, test, size=20):
     survived, scope = [], {}
@@ -38,46 +79,28 @@ def mut_test(func, test, size=20):
             pass
     return survived
 
+def sum_positive_numbers(numbers):
+    return sum([x**2 for x in numbers if x > 0])
 
-def quick_sort(arr):
-    if len(arr) <= 1:
-        return arr
-    pivot = arr[len(arr) // 2]
-    left = [x for x in arr if x < pivot]
-    middle = [x for x in arr if x == pivot]
-    right = [x for x in arr if x > pivot]
-    return quick_sort(left) + middle + quick_sort(right)
+def test_sum_positive_numbers():
+    assert sum_positive_numbers([1, 2, 3]) == 14
+    assert sum_positive_numbers([-1, 2, 3]) == 13
+    assert sum_positive_numbers([1, -2, 3]) == 10
+    assert sum_positive_numbers([1, 2, -3]) == 5
+    assert sum_positive_numbers([-1, -2, -3]) == 0
 
-def mut_test_binary_ops(func, data, n_mutants, threshold=0.8):
-    n_passed = round(len(data) * threshold)  # количество тестов, которые должен пройти мутант
-    survived = []
-    original_source = inspect.getsource(func)
-    for mutant_source in make_mutants(original_source, n_mutants):
-        try:
-            exec(mutant_source)
-            passed = []
-            for i, d in enumerate(data):
-                # проверяем, что мутант проходит тест на i-ом элементе из data
-                assert func(d) == sorted(d)
-                passed.append(i)
-                if len(passed) >= n_passed:
-                    # если мутант прошел достаточное количество тестов, добавляем его к списку выживших
-                    survived.append(mutant_source)
-                    break
-        except:
-            pass
-    return survived
+def sort_numbers(numbers):
+    return sorted(numbers)
+
+def test_sort_numbers():
+    assert sort_numbers([1, 2, 3]) == [1, 2, 3]
+    assert sort_numbers([3, 2, 1]) == [1, 2, 3]
+    assert sort_numbers([2, 3, 1]) == [1, 2, 3]
+    assert sort_numbers([1]) == [1]
+    assert sort_numbers([]) == []
 
 
-data = []
-for i in range(10):
-    arr = [random.randint(-100, 100) for _ in range(random.randint(1, 10))]
-    data.append(arr)
-
-survived_mutants = mut_test_binary_ops(quick_sort, data, 50)
-
-print(f'{len(survived_mutants)} out of 50 mutants survived testing')
-
-for mutant_source in survived_mutants:
-    print(mutant_source)
-
+survived = mut_test(sum_positive_numbers, test_sum_positive_numbers)
+assert not survived, f"{len(survived)} mutants survived: {survived}"
+survived = mut_test(sort_numbers, test_sort_numbers)
+assert not survived, f"{len(survived)} mutants survived: {survived}"

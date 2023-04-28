@@ -1,12 +1,13 @@
+import random
 import sqlite3
 from hypothesis import given
 import hypothesis.strategies as st
 
 
 class BankAccount:
-    def __init__(self, account_number):
+    def __init__(self, account_number, conn):
         self.account_number = account_number
-        self.conn = sqlite3.connect('bank.db')
+        self.conn = conn
         self.cursor = self.conn.cursor()
         self.cursor.execute(
             "CREATE TABLE IF NOT EXISTS accounts (account_number INTEGER PRIMARY KEY, balance REAL)")
@@ -45,62 +46,68 @@ class BankAccount:
         self.conn.commit()
         return f"Счет {self.account_number} успешно создан"
 
-class TestBankAccount:
-    @given(st.floats(allow_nan=False, allow_infinity=False))
-    def test_deposit(self, amount):
-        account_number = 1234567890
-        account = BankAccount(account_number)
-        initial_balance = self.get_balance(account_number)
-        account.deposit(amount)
-        new_balance = self.get_balance(account_number)
-        assert new_balance == initial_balance + amount
 
-    @given(st.floats(allow_nan=False, allow_infinity=False))
-    def test_withdraw(self, amount):
-        account_number = 1234567890
-        account = BankAccount(account_number)
+class TestBankAccount:
+    def __init__(self):
+        self.conn = sqlite3.connect('bank.db')
+        self.account_number = 1
+
+    @given(st.floats(allow_nan=False, allow_infinity=False), st.floats(allow_nan=False, allow_infinity=False))
+    def test_deposit(self, amount, balance):
+        account = BankAccount(self.account_number, self.conn)
+        account.create_account(balance)
+        initial_balance = self.get_balance(self.account_number)
         account.deposit(amount)
-        initial_balance = self.get_balance(account_number)
+        new_balance = self.get_balance(self.account_number)
+        assert new_balance == initial_balance + amount
+        self.account_number += 1
+
+    @given(st.floats(allow_nan=False, allow_infinity=False), st.floats(allow_nan=False, allow_infinity=False))
+    def test_withdraw(self, amount, balance):
+        account = BankAccount(self.account_number, self.conn)
+        account.create_account(balance)
+        account.deposit(amount)
+        initial_balance = self.get_balance(self.account_number)
         account.withdraw(amount)
-        new_balance = self.get_balance(account_number)
+        new_balance = self.get_balance(self.account_number)
         assert new_balance == initial_balance - amount
+        self.account_number += 1
 
     @given(st.floats(allow_nan=False, allow_infinity=False))
     def test_create_account(self, balance):
-        account_number = 1234567890
-        account = BankAccount(account_number)
+        account = BankAccount(self.account_number, self.conn)
         account.create_account(balance)
-        assert self.account_exists(account_number)
+        assert self.account_exists(self.account_number)
+        self.account_number += 1
 
     @given(st.floats(allow_nan=False, allow_infinity=False))
     def test_close_account(self, balance):
-        account_number = 1234567890
-        account = BankAccount(account_number)
+        account = BankAccount(self.account_number, self.conn)
         account.create_account(balance)
         account.close_account()
-        assert not self.account_exists(account_number)
+        assert not self.account_exists(self.account_number)
+        self.account_number += 1
 
     def get_balance(self, account_number):
-        conn = sqlite3.connect('bank.db')
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         cursor.execute(
             "SELECT balance FROM accounts WHERE account_number = ?", (account_number,))
         balance = cursor.fetchone()[0]
-        conn.close()
         return balance
 
     def account_exists(self, account_number):
-        conn = sqlite3.connect('bank.db')
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         cursor.execute(
             "SELECT COUNT(*) FROM accounts WHERE account_number = ?", (account_number,))
         count = cursor.fetchone()[0]
-        conn.close()
         return count == 1
 
 
-bank = BankAccount(12312312312)
-print(bank.create_account(200))
+# bank = BankAccount(1231231232322)
+# print(bank.create_account(200))
 
-# test_bank = TestBankAccount()
-# test_bank.test_create_account()
+test_bank = TestBankAccount()
+test_bank.test_create_account()
+# test_bank.test_close_account()
+# test_bank.test_deposit()
+# test_bank.test_withdraw()
