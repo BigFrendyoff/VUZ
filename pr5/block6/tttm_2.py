@@ -5,6 +5,7 @@ import graphviz
 game = {}
 
 # START_STATE = dict(
+#     player='alice',
 #     alice_room='west room',
 #     bob_room='east room',
 #     red_key='east room',
@@ -14,6 +15,7 @@ game = {}
 # )
 
 # START_STATE = dict(
+#     player='alice',
 #     alice_room='west room',
 #     bob_room='west room',
 #     red_key='east room',
@@ -23,6 +25,7 @@ game = {}
 # )
 
 # START_STATE = dict(
+#     player='alice',
 #     alice_room='west room',
 #     bob_room='east room',
 #     red_key='east room',
@@ -33,6 +36,7 @@ game = {}
 start_room = ['west room', 'east room']
 
 START_STATE = dict(
+    player='alice',
     alice_room=start_room[random.randint(0, 1)],
     bob_room=start_room[random.randint(0, 1)],
     red_key=start_room[random.randint(0, 1)],
@@ -40,19 +44,24 @@ START_STATE = dict(
     green_key=start_room[random.randint(0, 1)],
     goal=False
 )
-used_states=[START_STATE]
-used_names=[0]
+used_states = [START_STATE]
+used_names = [0]
+
+
 def variator(state, graph, n=0):
-    global  used_states
+    global used_states
     global used_names
-    graph = graph | {n: dict()}
+    player = {'alice': 'bob',
+              'bob': 'alice'}
+    player_room = {'alice': 'alice_room',
+                   'bob': 'bob_room'}
     current_n = n
     extension = {}
     result = {}
     if state['alice_room'] == state['bob_room']:
-        if state['red_key'] == 'alice':
+        if state['red_key'] == state['player']:
             state_copy = state.copy()
-            state_copy['red_key'] = 'bob'
+            state_copy['red_key'] = player[state['player']]
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -60,9 +69,9 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-        if state['green_key'] == 'alice':
+        if state['green_key'] == state['player']:
             state_copy = state.copy()
-            state_copy['green_key'] = 'bob'
+            state_copy['green_key'] = player[state['player']]
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -70,9 +79,9 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-        if state['blue_key'] == 'alice':
+        if state['blue_key'] == state['player']:
             state_copy = state.copy()
-            state_copy['blue_key'] = 'bob'
+            state_copy['blue_key'] = player[state['player']]
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -80,10 +89,10 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-    if state['alice_room'] == 'west room':
+    if state[player_room[state['player']]] == 'west room':
         if state['red_key'] == 'west room':
             state_copy = state.copy()
-            state_copy['red_key'] = 'alice'
+            state_copy['red_key'] = state['player']
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -93,7 +102,7 @@ def variator(state, graph, n=0):
                 extension[used_names[used_states.index(state_copy)]] = state_copy
         if state['blue_key'] == 'west room':
             state_copy = state.copy()
-            state_copy['blue_key'] = 'alice'
+            state_copy['blue_key'] = state['player']
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -103,7 +112,7 @@ def variator(state, graph, n=0):
                 extension[used_names[used_states.index(state_copy)]] = state_copy
         if state['green_key'] == 'west room':
             state_copy = state.copy()
-            state_copy['green_key'] = 'alice'
+            state_copy['green_key'] = state['player']
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -111,10 +120,10 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-        if state['red_key'] == 'alice':
+        if state['red_key'] == state['player']:
             state_copy = state.copy()
-            state_copy['alice_room'] = 'red room'
-            if state['bob_room'] == 'blue room':
+            state_copy[player_room[state['player']]] = 'red room'
+            if state_copy['bob_room'] == 'blue room' and state_copy['alice_room'] == 'red room':
                 state_copy['goal'] = True
             if state_copy not in used_states:
                 n = used_names[-1] + 1
@@ -123,9 +132,9 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-        if state['green_key'] == 'alice':
+        if state['green_key'] == state['player']:
             state_copy = state.copy()
-            state_copy['alice_room'] = 'east room'
+            state_copy[player_room[state['player']]] = 'east room'
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -133,10 +142,10 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-    if state['alice_room'] == 'east room':
+    if state[player_room[state['player']]] == 'east room':
         if state['red_key'] == 'east room':
             state_copy = state.copy()
-            state_copy['red_key'] = 'alice'
+            state_copy['red_key'] = state['player']
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -146,7 +155,7 @@ def variator(state, graph, n=0):
                 extension[used_names[used_states.index(state_copy)]] = state_copy
         if state['blue_key'] == 'east room':
             state_copy = state.copy()
-            state_copy['blue_key'] = 'alice'
+            state_copy['blue_key'] = state['player']
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -156,7 +165,7 @@ def variator(state, graph, n=0):
                 extension[used_names[used_states.index(state_copy)]] = state_copy
         if state['green_key'] == 'east room':
             state_copy = state.copy()
-            state_copy['green_key'] = 'alice'
+            state_copy['green_key'] = state['player']
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -164,9 +173,11 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-        if state['blue_key'] == 'alice':
+        if state['blue_key'] == state['player']:
             state_copy = state.copy()
-            state_copy['alice_room'] = 'blue room'
+            state_copy[player_room[state['player']]] = 'blue room'
+            if state_copy['bob_room'] == 'blue room' and state_copy['alice_room'] == 'red room':
+                state_copy['goal'] = True
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -174,9 +185,9 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-        if state['green_key'] == 'alice':
+        if state['green_key'] == state['player']:
             state_copy = state.copy()
-            state_copy['alice_room'] = 'west room'
+            state_copy[player_room[state['player']]] = 'west room'
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -184,10 +195,21 @@ def variator(state, graph, n=0):
                 used_states.append(state_copy)
             elif state_copy != state:
                 extension[used_names[used_states.index(state_copy)]] = state_copy
-    if state['alice_room'] == 'blue room':
-        if state['blue_key'] == 'alice':
+    if state[player_room[state['player']]] == 'blue room':
+        if state['blue_key'] == 'alice' and state['player'] == 'alice':
             state_copy = state.copy()
             state_copy['alice_room'] = 'east room'
+            if state_copy not in used_states:
+                n = used_names[-1] + 1
+                extension[n] = state_copy
+                used_names.append(n)
+                used_states.append(state_copy)
+            elif state_copy != state:
+                extension[used_names[used_states.index(state_copy)]] = state_copy
+    if state[player_room[state['player']]] == 'red room':
+        if state['red_key'] == 'bob' and state['player'] == 'bob':
+            state_copy = state.copy()
+            state_copy['bob_room'] = 'west room'
             if state_copy not in used_states:
                 n = used_names[-1] + 1
                 extension[n] = state_copy
@@ -201,167 +223,16 @@ def variator(state, graph, n=0):
         extension[n] = state
         used_names.append(n)
         used_states.append(state)
-    elif state != state:
+    elif current_n != 0:
         extension[used_names[used_states.index(state)]] = state
-    for key in extension.keys():
-        if extension[key]['bob_room'] == extension[key]['alice_room']:
-            if extension[key]['red_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['red_key'] = 'alice'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['green_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['green_key'] = 'alice'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['blue_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['blue_key'] = 'alice'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-        if extension[key]['bob_room'] == 'west room':
-            if extension[key]['red_key'] == 'west room':
-                state_copy = extension[key].copy()
-                state_copy['red_key'] = 'bob'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['blue_key'] == 'west room':
-                state_copy = extension[key].copy()
-                state_copy['blue_key'] = 'bob'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['green_key'] == 'west room':
-                state_copy = extension[key].copy()
-                state_copy['green_key'] = 'bob'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['red_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['bob_room'] = 'red room'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['green_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['bob_room'] = 'east room'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-        if extension[key]['bob_room'] == 'east room':
-            if extension[key]['red_key'] == 'east room':
-                state_copy = extension[key].copy()
-                state_copy['red_key'] = 'bob'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['blue_key'] == 'east room':
-                state_copy = extension[key].copy()
-                state_copy['blue_key'] = 'bob'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['green_key'] == 'east room':
-                state_copy = extension[key].copy()
-                state_copy['green_key'] = 'bob'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['blue_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['bob_room'] = 'blue room'
-                if extension[key]['alice_room'] == 'red room':
-                    state_copy['goal'] = True
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-            if extension[key]['green_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['bob_room'] = 'west room'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-        if extension[key]['bob_room'] == 'red room':
-            if extension[key]['red_key'] == 'bob':
-                state_copy = extension[key].copy()
-                state_copy['bob_room'] = 'west room'
-                if state_copy not in used_states:
-                    n = used_names[-1] + 1
-                    result[n] = state_copy
-                    used_names.append(n)
-                    used_states.append(state_copy)
-                elif state_copy != state:
-                    result[used_names[used_states.index(state_copy)]] = state_copy
-        if extension[key] not in used_states:
-            n = used_names[-1] + 1
-            result[n] = extension[key]
-            used_names.append(n)
-            used_states.append(extension[key])
-        elif extension[key] != state:
-            result[used_names[used_states.index(extension[key])]] = extension[key]
-    result = extension | result
-    graph[current_n] = result
-    for key in result:
-        if not result[key]['goal'] and key not in list(graph.keys()):
-            graph = graph | variator(result[key], graph, key)
+
+    graph[current_n] = extension
+
+    for key in extension:
+        if key not in list(graph.keys()):
+            state_copy = extension[key].copy()
+            state_copy['player'] = player[state['player']]
+            graph = graph | variator(state_copy, graph, key)
 
     return graph
 
@@ -375,9 +246,9 @@ def find_goal_states(graph):
                     goal_states.append(key_2)
     return goal_states
 
+
 def find_dead_ends(graph, goal_states):
     dead_ends = []
-
 
     def dfs(state, visited):
         if state in goal_states:
@@ -389,11 +260,11 @@ def find_dead_ends(graph, goal_states):
                     return True
         return False
 
-
     for key in graph.keys():
         if not dfs(key, visited=[]):
             dead_ends.append(key)
     return dead_ends
+
 
 def make_model(game, start, goal_states, dead_ends):
     used_nodes = []
@@ -403,7 +274,7 @@ def make_model(game, start, goal_states, dead_ends):
             graph.node(f'n{key_1}', style="filled", fillcolor="dodgerblue", shape="circle")
         elif key_1 in dead_ends:
             graph.node(f'n{key_1}', style="filled", fillcolor="red", shape="circle")
-        elif key_1 in dead_ends:
+        elif key_1 in goal_states:
             graph.node(f'n{key_1}', style="filled", fillcolor="green", shape="circle")
         else:
             graph.node(f'n{key_1}', style="filled", fillcolor="white", shape="circle")
@@ -422,10 +293,12 @@ def make_model(game, start, goal_states, dead_ends):
 
     graph.render('tttm_2_random', format='png')
 
+
 print(START_STATE)
 
 result = variator(START_STATE, game)
 print(sorted(list(result.keys())))
+print(len(list(result.keys())))
 goal_states = find_goal_states(result)
 print(goal_states)
 dead_ends = find_dead_ends(result, goal_states)
